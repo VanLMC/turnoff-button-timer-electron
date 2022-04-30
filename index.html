@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8">
+
+  <title>Hello World!</title>
+    <link rel="stylesheet" href="style.css">
+  </head>
+  <body style="-webkit-app-region: drag">
+      <div class="container">
+          
+          <div class="header"> <button id='close-button' class="close-button">x</button></div>
+        
+          <div class="timer">
+            <div class="time-viewer"></div>
+            <div class="pointer"></div>
+          </div>
+          <button class='turn-off-button'>Desligar</button>
+        </div>
+
+    <script >
+ 
+        let minutesToTurnOff = 0;
+        const timerViewer = document.querySelector(".time-viewer");
+        timerViewer.textContent = minutesToTurnOff;
+
+          const rotateHand = (event) => {
+            const elem = event.target;
+            elem.style.cursor = "grabbing";
+            let rotating = true;
+            const clock = document.querySelector(".timer");
+
+            const rect = clock.getBoundingClientRect(); // get clock size and position
+
+            const radius = rect.width / 2; // calculate radius based on size
+            const rotateHandler = (e) => {
+              const radians = Math.atan2(e.pageX - (rect.x + radius), e.pageY - (rect.y + radius)); // account for position  
+              let rotateDegrees = (radians * (180 / Math.PI) * -1) - 180;
+              console.log(rotateDegrees)
+
+              if (rotating) {
+                elem.style.transform = `rotate(${rotateDegrees}deg)`;
+                //  console.log(e.pageX)
+        
+                if(timerViewer.textContent >= 10){
+                  minutesToTurnOff = 0;
+                }
+                else {
+                  minutesToTurnOff = minutesToTurnOff +=1;
+                }
+                timerViewer.textContent = minutesToTurnOff ;
+              }
+            };
+            document.addEventListener("mousemove", rotateHandler);
+            const cancelRotate = (event) => {
+              elem.style.cursor = "grab";
+              rotating = !rotating;
+              document.removeEventListener("mousemove", rotateHandler);
+              document.removeEventListener("mouseup", cancelRotate);
+
+            };
+            document.addEventListener("mouseup", cancelRotate);
+          };
+
+
+        const pointer = document.querySelector(".pointer");
+        pointer.addEventListener("mousedown", rotateHand);
+
+
+
+        const {ipcRenderer} = require('electron');
+
+
+        const turnOffButton =  document.querySelector('.turn-off-button');
+        turnOffButton.addEventListener('click', turnPcOff);
+
+        const closeButton = document.getElementById('close-button');
+        closeButton.addEventListener('click', closeApp);
+    
+        function turnPcOff() {
+            console.log(' turn-off')
+            ipcRenderer.send('turn-off', [minutesToTurnOff]);
+        }
+
+        function closeApp() {
+            console.log('close app html')
+            ipcRenderer.send('close-window');
+        }
+    </script>
+  </body>
+
+
+</html>
